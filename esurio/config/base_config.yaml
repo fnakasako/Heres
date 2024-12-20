@@ -1,0 +1,195 @@
+# Esurio Base Configuration
+
+system:
+  name: "esurio"
+  version: "0.1.0"
+  description: "Advanced market intelligence system"
+  environment: ${ENVIRONMENT:-production}
+
+# Data Collection Configuration
+scraping:
+  max_concurrent_requests: ${MAX_CONCURRENT_REQUESTS:-10}
+  rate_limit_per_domain: ${RATE_LIMIT_PER_DOMAIN:-2}
+  interval_seconds: ${SCRAPING_INTERVAL_SECONDS:-300}
+  retry:
+    max_retries: 3
+    backoff_factor: 1.5
+    status_forcelist: [500, 502, 503, 504]
+  timeout:
+    connect: 10
+    read: 30
+  user_agent: "Esurio Market Intelligence Bot/0.1.0"
+
+# Processing Configuration
+processing:
+  batch_size: ${BATCH_SIZE:-1000}
+  threads: ${PROCESSING_THREADS:-4}
+  cache_ttl: ${CACHE_TTL_SECONDS:-3600}
+  feature_store:
+    path: ${FEATURE_STORE_PATH:-/app/data/features}
+    format: "parquet"
+    compression: "snappy"
+
+# Quantitative Analysis Configuration
+quant:
+  frameworks:
+    topology:
+      enabled: true
+      persistence_threshold: 0.1
+      homology_dimensions: [0, 1]
+      filtration_max: 2.0
+    
+    quantum:
+      enabled: true
+      n_qubits: 4
+      shots: 1000
+      optimization_level: 1
+    
+    information_geometry:
+      enabled: true
+      manifold_dimension: 10
+      learning_rate: 0.01
+      metric_type: "fisher"
+    
+    category_theory:
+      enabled: true
+      functor_types: ["linear", "polynomial", "exponential"]
+      natural_transformation_depth: 2
+
+  neural:
+    architectures:
+      - name: "quantum_attention"
+        enabled: true
+        heads: 8
+        dim: 512
+      - name: "topological_conv"
+        enabled: true
+        filters: [32, 64, 128]
+        kernel_size: 3
+      - name: "geometric_rnn"
+        enabled: true
+        hidden_size: 256
+        layers: 2
+      - name: "categorical_net"
+        enabled: true
+        width: 512
+        depth: 4
+
+  optimization:
+    population_size: ${OPTIMIZATION_POPULATION_SIZE:-100}
+    generations: ${OPTIMIZATION_GENERATIONS:-50}
+    mutation_rate: ${OPTIMIZATION_MUTATION_RATE:-0.1}
+    crossover_rate: 0.8
+    selection_pressure: 0.2
+
+  risk:
+    max_position_size: ${MAX_POSITION_SIZE:-0.1}
+    risk_free_rate: ${RISK_FREE_RATE:-0.02}
+    max_drawdown: ${MAX_DRAWDOWN:-0.2}
+    stop_loss: ${STOP_LOSS_THRESHOLD:-0.05}
+    var_confidence: 0.99
+    cvar_window: 252
+
+# Feature Engineering
+features:
+  technical:
+    enabled: true
+    windows: ${ROLLING_WINDOW_SIZES:-[5,10,20,50,100]}
+    volatility_window: ${VOLATILITY_WINDOW:-20}
+    correlation_threshold: ${CORRELATION_THRESHOLD:-0.7}
+    indicators:
+      - type: "momentum"
+        names: ["rsi", "macd", "cci"]
+      - type: "trend"
+        names: ["sma", "ema", "bbands"]
+      - type: "volatility"
+        names: ["atr", "natr", "trange"]
+      - type: "volume"
+        names: ["obv", "adl", "cmf"]
+
+  sentiment:
+    enabled: true
+    models:
+      - name: "finbert"
+        source: "news"
+      - name: "roberta"
+        source: "social"
+    aggregation:
+      window: 24  # hours
+      method: "exponential"
+
+  market_structure:
+    enabled: true
+    metrics:
+      - "liquidity"
+      - "depth"
+      - "spread"
+      - "impact"
+    sampling:
+      frequency: "1min"
+      aggregation: "5min"
+
+# Model Management
+models:
+  save_path: ${MODEL_SAVE_PATH:-/app/models}
+  versioning: true
+  format: "onnx"
+  compression: true
+  metadata:
+    track_metrics: true
+    store_configs: true
+    log_gradients: false
+
+# Storage Configuration
+storage:
+  retention_days: ${DATA_RETENTION_DAYS:-90}
+  archive:
+    enabled: true
+    path: ${ARCHIVE_PATH:-/app/data/archive}
+    format: "parquet"
+    compression: "snappy"
+  backup:
+    enabled: true
+    frequency: "daily"
+    keep_last: 7
+
+# Monitoring and Logging
+monitoring:
+  interval: ${MONITORING_INTERVAL_SECONDS:-60}
+  metrics:
+    - type: "system"
+      names: ["cpu", "memory", "disk", "network"]
+    - type: "application"
+      names: ["latency", "throughput", "errors", "queue_size"]
+    - type: "business"
+      names: ["signals", "positions", "pnl", "risk"]
+
+logging:
+  level: ${LOG_LEVEL:-INFO}
+  format: "json"
+  handlers:
+    - type: "console"
+      enabled: true
+    - type: "file"
+      enabled: true
+      path: "/app/logs/esurio.log"
+      rotation: "1 day"
+      retention: "30 days"
+  metrics:
+    enabled: true
+    export_interval: 60
+
+# Security Configuration
+security:
+  encryption_key: ${ENCRYPTION_KEY}
+  jwt_secret: ${JWT_SECRET_KEY}
+  api_rate_limit: 100
+  allowed_ips: []
+  cors_origins: ${CORS_ORIGINS:-["http://localhost:3000"]}
+
+# Development Configuration
+development:
+  debug: ${DEBUG:-false}
+  testing: ${TESTING:-false}
+  profiling: false
+  hot_reload: false

@@ -1,0 +1,184 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: esurio:latest
+    container_name: esurio_app
+    depends_on:
+      - postgres
+      - redis
+      - scraper
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=0  # For GPU support
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: esurio_postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-esurio}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-esurio}
+      - POSTGRES_DB=${POSTGRES_DB:-esurio}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esurio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: esurio_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: esurio:latest
+    container_name: esurio_scraper
+    command: python -m src.scraping.runner
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  gpu_compute:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: esurio:latest
+    container_name: esurio_gpu
+    command: python -m src.processing.quant.neural_architectures
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: esurio:latest
+    container_name: esurio_jupyter
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app
+    volumes:
+      - ./notebooks:/app/notebooks
+      - ./data:/app/data
+      - ./models:/app/models
+    ports:
+      - "8888:8888"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# Additional configurations for production
+configs:
+  app_config:
+    file: ./config/base_config.yaml
+  scraping_config:
+    file: ./config/scraping_targets.yaml
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  api_keys:
+    file: ./secrets/api_keys.txt
+
+# Resource limits and scaling
+x-deploy: &default-deploy
+  replicas: 1
+  update_config:
+    parallelism: 1
+    delay: 10s
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+  resources:
+    limits:
+      cpus: '1'
+      memory: 2G
+    reservations:
+      cpus: '0.5'
+      memory: 1G

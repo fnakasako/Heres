@@ -1,0 +1,199 @@
+# Esurio Scraping Targets Configuration
+
+# Market Data Sources
+market_data:
+  - name: "stock_prices"
+    type: "market_spider"
+    enabled: true
+    priority: 1
+    schedule: "*/1 * * * *"  # Every minute
+    sources:
+      - name: "alpha_vantage"
+        url: "https://www.alphavantage.co/query"
+        api_key: ${ALPHA_VANTAGE_API_KEY}
+        endpoints:
+          - "TIME_SERIES_INTRADAY"
+          - "GLOBAL_QUOTE"
+        symbols: ["AAPL", "GOOGL", "MSFT", "AMZN", "META"]
+      - name: "yahoo_finance"
+        url: "https://query2.finance.yahoo.com/v8/finance/chart"
+        rate_limit: 2
+        endpoints:
+          - "quote"
+          - "chart"
+        symbols: ["^GSPC", "^DJI", "^IXIC"]
+
+  - name: "crypto_prices"
+    type: "crypto_spider"
+    enabled: true
+    priority: 1
+    schedule: "*/1 * * * *"  # Every minute
+    sources:
+      - name: "coinbase"
+        url: "https://api.pro.coinbase.com"
+        api_key: ${COINBASE_API_KEY}
+        symbols: ["BTC-USD", "ETH-USD", "SOL-USD"]
+      - name: "binance"
+        url: "https://api.binance.com/api/v3"
+        api_key: ${BINANCE_API_KEY}
+        symbols: ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+
+# News and Social Media
+news_data:
+  - name: "financial_news"
+    type: "news_spider"
+    enabled: true
+    priority: 2
+    schedule: "*/5 * * * *"  # Every 5 minutes
+    sources:
+      - name: "newsapi"
+        url: "https://newsapi.org/v2"
+        api_key: ${NEWSAPI_KEY}
+        endpoints:
+          - "top-headlines"
+          - "everything"
+        categories: ["business", "technology", "finance"]
+      - name: "reuters"
+        url: "https://www.reuters.com"
+        selectors:
+          article: "article.story"
+          title: "h1.article-header__title"
+          content: "div.article-body__content"
+        categories: ["markets", "business", "technology"]
+
+social_data:
+  - name: "social_sentiment"
+    type: "social_spider"
+    enabled: true
+    priority: 2
+    schedule: "*/15 * * * *"  # Every 15 minutes
+    sources:
+      - name: "twitter"
+        url: "https://api.twitter.com/2"
+        api_key: ${TWITTER_API_KEY}
+        api_secret: ${TWITTER_API_SECRET}
+        endpoints:
+          - "tweets/search/recent"
+          - "users/:id/tweets"
+        keywords: ["stocks", "crypto", "market", "trading"]
+        influencers: ["@jimcramer", "@elonmusk", "@federalreserve"]
+
+# Economic Indicators
+economic_data:
+  - name: "macro_indicators"
+    type: "economic_spider"
+    enabled: true
+    priority: 3
+    schedule: "0 */1 * * *"  # Every hour
+    sources:
+      - name: "fred"
+        url: "https://api.stlouisfed.org/fred"
+        api_key: ${FRED_API_KEY}
+        series:
+          - "GDP"           # Gross Domestic Product
+          - "UNRATE"        # Unemployment Rate
+          - "CPIAUCSL"      # Consumer Price Index
+          - "DFF"           # Federal Funds Rate
+          - "M2"            # Money Supply
+          - "INDPRO"        # Industrial Production
+      - name: "world_bank"
+        url: "https://api.worldbank.org/v2"
+        api_key: ${WORLD_BANK_API_KEY}
+        indicators:
+          - "NY.GDP.MKTP.CD"  # GDP
+          - "FP.CPI.TOTL.ZG"  # Inflation
+          - "SL.UEM.TOTL.ZS"  # Unemployment
+
+# Supply Chain Data
+supply_chain:
+  - name: "logistics_data"
+    type: "supply_spider"
+    enabled: true
+    priority: 3
+    schedule: "0 */2 * * *"  # Every 2 hours
+    sources:
+      - name: "shipping_rates"
+        url: "https://api.logistics.com"
+        api_key: ${LOGISTICS_API_KEY}
+        metrics:
+          - "container_rates"
+          - "port_congestion"
+          - "vessel_tracking"
+        regions: ["APAC", "EMEA", "AMER"]
+
+# Corporate Events
+earnings_data:
+  - name: "earnings_calendar"
+    type: "earnings_spider"
+    enabled: true
+    priority: 2
+    schedule: "0 */4 * * *"  # Every 4 hours
+    sources:
+      - name: "earnings_whispers"
+        url: "https://api.earningswhispers.com"
+        selectors:
+          calendar: "div.earnings-calendar"
+          company: "div.company-info"
+          estimates: "div.estimates"
+      - name: "sec_filings"
+        url: "https://www.sec.gov/edgar/searchedgar"
+        form_types: ["10-K", "10-Q", "8-K"]
+        companies: ["AAPL", "GOOGL", "MSFT", "AMZN", "META"]
+
+# Data Validation Rules
+validation:
+  market_data:
+    price:
+      min: 0.0001
+      max: 1000000
+    volume:
+      min: 0
+      max: 1000000000000
+  
+  sentiment:
+    score:
+      min: -1.0
+      max: 1.0
+    confidence:
+      min: 0.0
+      max: 1.0
+
+  economic:
+    gdp_growth:
+      min: -30.0
+      max: 30.0
+    inflation:
+      min: -10.0
+      max: 50.0
+
+# Error Handling
+error_handling:
+  retry_attempts: 3
+  backoff_factor: 1.5
+  status_forcelist: [500, 502, 503, 504]
+  timeout:
+    connect: 10
+    read: 30
+
+# Rate Limiting
+rate_limits:
+  default: 2  # requests per second
+  alpha_vantage: 5
+  yahoo_finance: 2
+  twitter: 450  # per 15-minute window
+  newsapi: 100  # per day
+  fred: 120  # per minute
+
+# Proxy Configuration
+proxies:
+  enabled: false
+  rotation_interval: 300  # seconds
+  providers:
+    - name: "luminati"
+      url: "http://proxy.luminati.io"
+      username: ${LUMINATI_USERNAME}
+      password: ${LUMINATI_PASSWORD}
+    - name: "brightdata"
+      url: "http://proxy.brightdata.com"
+      username: ${BRIGHTDATA_USERNAME}
+      password: ${BRIGHTDATA_PASSWORD}

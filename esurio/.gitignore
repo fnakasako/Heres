@@ -1,0 +1,198 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+api_keys.txt
+*.pem
+*.key
+*.crt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.python-version
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+# Data files
+data/
+!data/.gitkeep
+models/
+!models/.gitkeep
+notebooks/.ipynb_checkpoints/
+logs/
+!logs/.gitkeep
+
+# Model files
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+*.pt
+*.pth
+*.onnx
+*.pb
+checkpoints/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+postgres-data/
+
+# Cache
+.cache/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Documentation
+docs/_build/
+site/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Feature store
+features/
+feature_store/
+.features/
+
+# Scraped data
+scraped_data/
+raw_data/
+processed_data/
+
+# Trading specific
+backtests/
+strategies/
+signals/
+positions/
+portfolio/
+risk_reports/
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*.ipynb
+!notebooks/*.ipynb
+
+# Poetry
+poetry.lock
+
+# System specific
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Test coverage
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Profiling
+*.prof
+profile_results/
+
+# Packaging
+*.tar.gz
+*.zip
+*.rar
+
+# Temporary directories
+tmp/
+temp/
+
+# Local development
+local_settings.py
+override.py
+custom_settings.py
+
+# Security
+*.key
+*.pem
+*.crt
+*.cer
+*.der
+*.priv
+*.pub
+
+# Backup files
+*.bak
+*.backup
+*~
+*.old
